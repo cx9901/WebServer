@@ -75,7 +75,6 @@ void HttpRequest::ParsePath_() {
         }
     }
 }
-
 bool HttpRequest::ParseRequestLine_(const string& line) {
     regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
     smatch subMatch;
@@ -122,7 +121,7 @@ void HttpRequest::ParsePost_() {
             LOG_DEBUG("Tag:%d", tag);
             if(tag == 0 || tag == 1) {
                 bool isLogin = (tag == 1);
-                if(UserVerify(post_["username"], post_["password"], isLogin)) {
+                if(UserVerify(post_["username"], post_["passwd"], isLogin)) {
                     path_ = "/welcome.html";
                 } 
                 else {
@@ -189,9 +188,8 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd, bool isLogin
     
     if(!isLogin) { flag = true; }
     /* 查询用户及密码 */
-    snprintf(order, 256, "SELECT username, password FROM user WHERE username='%s' LIMIT 1", name.c_str());
+    snprintf(order, 256, "SELECT username, passwd FROM user WHERE username='%s' LIMIT 1", name.c_str());
     LOG_DEBUG("%s", order);
-
     if(mysql_query(sql, order)) { 
         mysql_free_result(res);
         return false; 
@@ -202,10 +200,10 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd, bool isLogin
 
     while(MYSQL_ROW row = mysql_fetch_row(res)) {
         LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
-        string password(row[1]);
+        string passwd(row[1]);
         /* 注册行为 且 用户名未被使用*/
         if(isLogin) {
-            if(pwd == password) { flag = true; }
+            if(pwd == passwd) { flag = true; }
             else {
                 flag = false;
                 LOG_DEBUG("pwd error!");
@@ -222,7 +220,7 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd, bool isLogin
     if(!isLogin && flag == true) {
         LOG_DEBUG("regirster!");
         bzero(order, 256);
-        snprintf(order, 256,"INSERT INTO user(username, password) VALUES('%s','%s')", name.c_str(), pwd.c_str());
+        snprintf(order, 256,"INSERT INTO user(username, passwd) VALUES('%s','%s')", name.c_str(), pwd.c_str());
         LOG_DEBUG( "%s", order);
         if(mysql_query(sql, order)) { 
             LOG_DEBUG( "Insert error!");
